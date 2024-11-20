@@ -6,18 +6,19 @@ t = int(input())
 for _ in range(t):
     n = int(input())
     a = list(map(int, input().split()))
-    prefix_sum = 0
-    seen_sum = {0:-1}
-    ans = 0
-    last_pos = -1
-    for i in range(n):
-        prefix_sum += a[i]
+    prf = [0] * (n+1)
+    mp = {0:0}
+    lst = [-1] * (n + 1)
+    for i in range(1,n+1):
+        prf[i] = prf[i-1] + a[i-1]
+        if prf[i] in mp:
+            lst[i] = mp[prf[i]]
+        mp[prf[i]] = i
+        
+    dp = [0] * (n+1)
+    for i in range(1,n+1):
+        dp[i] = dp[i-1]
+        if lst[i] != -1: 
+            dp[i] = max(dp[i], dp[lst[i]] + 1)
 
-        if prefix_sum in seen_sum and seen_sum[prefix_sum] >= last_pos:
-            ans += 1
-            last_pos = i+1
-            seen_sum = {0: i + 1}
-        else:
-            seen_sum[prefix_sum] = i+1
-        print(seen_sum)
-    print(ans)
+    print(dp[-1])
