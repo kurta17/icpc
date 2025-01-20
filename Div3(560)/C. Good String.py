@@ -1,7 +1,19 @@
 n = int(input())
-s = list(map(str, input().strip()))
+s = input().strip()
 
-ndel = 0
-ans = ''
+ans = []
+i = 0
 
-for i in range(n):
+while i < n - 1:
+    if s[i] != s[i + 1]:
+        ans.append(s[i])
+        ans.append(s[i + 1])
+        i += 2
+    else:
+        i += 1
+
+if len(ans) % 2 != 0:
+    ans = ans[:-1]
+
+print(n - len(ans))
+print(''.join(ans))
