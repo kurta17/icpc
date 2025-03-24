@@ -19,5 +19,6 @@ for i in range(n):
     shifts[shift] += 1
 
 print(max(shifts.values()))
-    
+
+
 
