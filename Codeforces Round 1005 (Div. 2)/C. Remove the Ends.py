@@ -2,12 +2,22 @@ for _ in range(int(input())):
     n = int(input())
     a = list(map(int, input().split()))
 
-    dp=[0] * (n)
-    dp[0] = abs(a[0])
+    pref = [0] * n
+    suff = [0] * n
+    pref[0] = a[0] if a[0] > 0 else 0
+    suff[n-1] = abs(a[n-1]) if a[n-1] < 0 else 0
     for i in range(1,n):
-        if a[i] * a[i-1] > 0 or (a[i-1] > 0 and a[i] < 0):
-            dp[i] = abs(a[i]) + dp[i-1]
-        else:
-            dp[i] = abs(a[i]) + d[i-1]
+        pref[i] = pref[i-1]
+        if a[i] > 0:
+            pref[i] = pref[i-1] + a[i]
+        
     
-    print(max(dp))
+    for i in range(n-2,-1,-1):
+        suff[i] = suff[i+1]
+        if a[i] < 0:
+            suff[i] = suff[i+1] + abs(a[i])
+    ans = 0
+    for i in range(n):
+        ans = max(ans, pref[i] + suff[i])
+    print(ans)
+    
