@@ -8,21 +8,20 @@ pref_b = [0] * (2 * n + 1)
 for i in range(2 * n):
     pref_b[i+1] = pref_b[i] + b[i]
 
-rem_s = s % tot_s
 ans = False
+rem_s = s % tot_s
+if rem_s == 0:  
+    print("Yes")
+    exit()
 
-i = 0
-j = 2*n
-while i < j:
-    if (pref_b[j] - pref_b[i]) == rem_s or pref_b[i] == rem_s or pref_b[j] == rem_s:
+unique_sums = set(pref_b)
+
+for i in range(2 * n + 1):
+    if pref_b[i] + rem_s in unique_sums:
         ans = True
         break
-    
-    if pref_b[j] - pref_b[i] < rem_s:
-        j -= 1
-    else:
-        i += 1
+
 if ans:
-    print("YES")
+    print("Yes")
 else:
-    print("NO")
+    print("No")
