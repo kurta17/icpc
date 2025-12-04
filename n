@@ -1,0 +1,5 @@
+SELECT class, SUM(test_score) AS total_score
+FROM students
+WHERE test_score > 50
+GROUP BY class
+HAVING SUM(test_score) > 500;

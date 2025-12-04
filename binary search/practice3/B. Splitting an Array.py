@@ -12,14 +12,14 @@ def poss(ms,a,k):
             curr_sum += i
     return cnt <= k
 
-l = 0
+l = max(a) - 1
 r = sum(a)
 
-while r > l:
+while r > l + 1:
     mid = (l+r)//2
     if poss(mid,a,k):
         r = mid
     else:
-        l = mid + 1
-print(l)
+        l = mid
+print(l+1)
 

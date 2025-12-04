@@ -1,0 +1,287 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{multicol}
+\usepackage{amsmath, amssymb}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{courier}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{listings}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{ICPC Graph Algorithms Sheet}}
+\rhead{\thepage}
+\setlength{\headsep}{0.2in}
+\setlength{\columnsep}{0.25in}
+
+\titleformat{\section}{\large\bfseries}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries}{}{0pt}{}
+
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{white},
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray},
+  showstringspaces=false,
+  tabsize=2,
+  columns=fullflexible,
+  keepspaces=true,
+  aboveskip=4pt,
+  belowskip=4pt,
+}
+
+\begin{document}
+\begin{multicols}{2}
+
+\begin{center}
+\Large{\textbf{Comprehensive Graph Algorithms}}\\
+\small{Optimized for ICPC Contest Use}
+\end{center}
+
+% ============================================================================
+\section{Connected Components}
+\textbf{Use when:} You need to count separate parts of a graph or check if nodes are connected.  
+Typical for: islands, networks, group counting, cluster problems.
+
+\textbf{DFS / BFS – Undirected Graph}
+
+\textbf{Time:} $O(N + M)$
+
+\begin{lstlisting}[language=Python]
+def count_cc_dfs(n, edges):
+    g = [[] for _ in range(n+1)]
+    for u,v in edges:
+        g[u].append(v); g[v].append(u)
+    vis = [0]*(n+1)
+    def dfs(u):
+        st=[u]
+        while st:
+            x=st.pop()
+            if vis[x]: continue
+            vis[x]=1
+            for v in g[x]:
+                if not vis[v]: st.append(v)
+    c=0
+    for i in range(1,n+1):
+        if not vis[i]: dfs(i); c+=1
+    return c
+\end{lstlisting}
+
+% ============================================================================
+\section{Shortest Path Algorithms}
+\textbf{Use when:} Finding minimal distance or cost between nodes.  
+Pick depending on edge type (unweighted, weighted, or negative weights).
+
+\subsection{Unweighted (BFS)}
+\textbf{Use when:} All edges have equal cost (1).  
+\textbf{Time:} $O(N + M)$
+\begin{lstlisting}[language=Python]
+def shortest_path_bfs(n, edges, s, t):
+    g=[[] for _ in range(n+1)]
+    for u,v in edges:
+        g[u].append(v); g[v].append(u)
+    d=[1e9]*(n+1); p=[-1]*(n+1)
+    q=[s]; d[s]=0
+    for u in q:
+        for v in g[u]:
+            if d[v]>1e8:
+                d[v]=d[u]+1; p[v]=u; q.append(v)
+    if d[t]==1e9: return [], 1e9
+    path=[]; x=t
+    while x!=-1: path.append(x); x=p[x]
+    return path[::-1], d[t]
+\end{lstlisting}
+
+\subsection{Dijkstra}
+\textbf{Use when:} All weights are non-negative.  
+\textbf{Time:} $O((N+M)\log N)$
+
+\begin{lstlisting}[language=Python]
+def dijkstra(n, edges, s):
+    import heapq
+    g=[[] for _ in range(n+1)]
+    for u,v,w in edges:
+        g[u].append((v,w)); g[v].append((u,w))
+    d=[1e18]*(n+1); p=[-1]*(n+1)
+    d[s]=0; pq=[(0,s)]
+    while pq:
+        du,u=heapq.heappop(pq)
+        if du!=d[u]: continue
+        for v,w in g[u]:
+            if d[v]>d[u]+w:
+                d[v]=d[u]+w; p[v]=u
+                heapq.heappush(pq,(d[v],v))
+    return d,p
+\end{lstlisting}
+
+\subsection{Bellman-Ford}
+\textbf{Use when:} Negative weights may appear, or you must detect negative cycles.  
+\textbf{Time:} $O(NM)$
+\begin{lstlisting}[language=Python]
+def bellman(n, edges, s):
+    d=[1e18]*(n+1); d[s]=0
+    for _ in range(n-1):
+        for u,v,w in edges:
+            if d[u]+w<d[v]: d[v]=d[u]+w
+    neg=False
+    for u,v,w in edges:
+        if d[u]+w<d[v]: neg=True
+    return d, neg
+\end{lstlisting}
+
+% ============================================================================
+\section{Connectivity Checks}
+\textbf{Use when:} You must verify if the graph is one connected piece or find weak points (bridges).
+
+\subsection{Is Connected}
+Checks if the graph is fully connected.  
+\textbf{Time:} $O(N+M)$
+\begin{lstlisting}[language=Python]
+def is_connected(n, edges):
+    from collections import deque
+    g=[[] for _ in range(n+1)]
+    for u,v in edges:
+        g[u].append(v); g[v].append(u)
+    vis=[0]*(n+1)
+    q=deque([1]); vis[1]=1; c=1
+    while q:
+        u=q.popleft()
+        for v in g[u]:
+            if not vis[v]:
+                vis[v]=1; q.append(v); c+=1
+    return c==n
+\end{lstlisting}
+
+\subsection{Find Bridges (Tarjan)}
+\textbf{Use when:} You need edges that, if removed, increase the number of connected components (critical connections).  
+\textbf{Time:} $O(N+M)$
+\begin{lstlisting}[language=Python]
+def bridges(n, edges):
+    g=[[] for _ in range(n+1)]
+    for u,v in edges:
+        g[u].append(v); g[v].append(u)
+    tin=[0]*(n+1); low=[0]*(n+1)
+    vis=[0]*(n+1); t=0; br=[]
+    def dfs(u,p):
+        nonlocal t
+        vis[u]=1; t+=1
+        tin[u]=low[u]=t
+        for v in g[u]:
+            if v==p: continue
+            if vis[v]: low[u]=min(low[u],tin[v])
+            else:
+                dfs(v,u)
+                low[u]=min(low[u],low[v])
+                if low[v]>tin[u]: br.append((u,v))
+    for i in range(1,n+1):
+        if not vis[i]: dfs(i,-1)
+    return br
+\end{lstlisting}
+
+% ============================================================================
+\section{Pathfinding and Existence}
+\textbf{Use when:} You need to know if any path exists or to list all possible paths.
+
+\subsection{All Paths (DFS)}
+Useful for small graphs (exponential complexity).  
+\begin{lstlisting}[language=Python]
+def all_paths(n, edges, s, t):
+    g=[[] for _ in range(n+1)]
+    for u,v in edges:
+        g[u].append(v); g[v].append(u)
+    res=[]
+    def dfs(u,path,vis):
+        if u==t: res.append(path[:]); return
+        for v in g[u]:
+            if v not in vis:
+                vis.add(v)
+                dfs(v,path+[v],vis)
+                vis.remove(v)
+    dfs(s,[s],{s})
+    return res
+\end{lstlisting}
+
+\subsection{Has Path (BFS)}
+Quick existence check between two nodes.  
+\begin{lstlisting}[language=Python]
+def has_path(n, edges, s, t):
+    g=[[] for _ in range(n+1)]
+    for u,v in edges:
+        g[u].append(v); g[v].append(u)
+    from collections import deque
+    q=deque([s]); vis={s}
+    while q:
+        u=q.popleft()
+        if u==t: return True
+        for v in g[u]:
+            if v not in vis:
+                vis.add(v); q.append(v)
+    return False
+\end{lstlisting}
+
+% ============================================================================
+\section{Cycle Detection}
+\textbf{Use when:} You must check if graph has loops — important in dependency, topology, or union-find problems.
+
+\subsection{Undirected}
+Detects cycle via DFS.  
+\begin{lstlisting}[language=Python]
+def cycle_undirected(n, edges):
+    g=[[] for _ in range(n+1)]
+    for u,v in edges:
+        g[u].append(v); g[v].append(u)
+    vis=[0]*(n+1)
+    def dfs(u,p):
+        vis[u]=1
+        for v in g[u]:
+            if not vis[v]:
+                if dfs(v,u): return True
+            elif v!=p: return True
+        return False
+    for i in range(1,n+1):
+        if not vis[i]:
+            if dfs(i,-1): return True
+    return False
+\end{lstlisting}
+
+\subsection{Directed (Color DFS)}
+Detects cycle using node color states.  
+Useful for topological sort problems.  
+\begin{lstlisting}[language=Python]
+def cycle_directed(n, edges):
+    g=[[] for _ in range(n+1)]
+    for u,v in edges: g[u].append(v)
+    W,G,B=0,1,2; color=[W]*(n+1)
+    def dfs(u):
+        color[u]=G
+        for v in g[u]:
+            if color[v]==G: return True
+            if color[v]==W and dfs(v): return True
+        color[u]=B; return False
+    for i in range(1,n+1):
+        if color[i]==W:
+            if dfs(i): return True
+    return False
+\end{lstlisting}
+
+\columnbreak
+\section{Complexities Summary}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Algorithm} & \textbf{Time} \\ \hline
+DFS/BFS Component Count & $O(N+M)$ \\ 
+Shortest Path (BFS) & $O(N+M)$ \\
+Dijkstra & $O((N+M)\log N)$ \\
+Bellman-Ford & $O(NM)$ \\
+Bridge Finding (Tarjan) & $O(N+M)$ \\
+Cycle Detection & $O(N+M)$ \\
+All Paths (DFS) & Exponential \\
+\hline
+\end{tabular}
+
+\end{multicols}
+\end{document}
